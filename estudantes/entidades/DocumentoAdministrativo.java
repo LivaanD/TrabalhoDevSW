@@ -5,8 +5,8 @@ import professor.entidades.CodigoCurso;
 public abstract class DocumentoAdministrativo extends Documento 
 {
     // Construtor
-    public DocumentoAdministrativo(String criador, CodigoCurso CodigoCurso, int paginas)
+    public DocumentoAdministrativo(String criador, CodigoCurso codigoCurso, int paginas)
     {
-        super(criador, CodigoCurso, paginas);
+        super(criador, codigoCurso, paginas);
     }
 }

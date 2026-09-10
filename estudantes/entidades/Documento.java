@@ -14,14 +14,14 @@ import java.util.Objects;
 public abstract class Documento 
 {
     private String criador;
-    private CodigoCurso CodigoCurso;
+    private CodigoCurso codigoCurso;
     private int paginas;
 
     // Construtor
-    public Documento(String criador, CodigoCurso CodigoCurso, int paginas)
+    public Documento(String criador, CodigoCurso codigoCurso, int paginas)
     {
         this.criador = criador;
-        this.CodigoCurso = CodigoCurso;
+        this.codigoCurso = codigoCurso;
         this.paginas = paginas;
     }
     
@@ -38,14 +38,14 @@ public abstract class Documento
             return false;
         }
         
-        Documento Documento = (Documento) obj;
-        return paginas == Documento.paginas && Objects.equals(criador, Documento.criador) && Objects.equals(CodigoCurso, Documento.CodigoCurso);
+        Documento documento = (Documento) obj;
+        return paginas == documento.paginas && Objects.equals(criador, documento.criador) && Objects.equals(codigoCurso, documento.codigoCurso);
     }
 
     // hashCode
     @Override
     public int hashCode() 
     {
-        return Objects.hash(criador, CodigoCurso, paginas);
+        return Objects.hash(criador, codigoCurso, paginas);
     }
 }
