@@ -56,8 +56,62 @@ public class Burocrata {
      * @see professor.entidades.Universidade#devolverDocumentoParaMonteDoCurso(estudantes.entidades.Documento, professor.entidades.CodigoCurso) 
      */
     public void trabalhar(){
-        
+
+        //percorre todos os cursos
+
+        for(CodigoCurso codigo : CodigoCurso.values()){
+
+            //pega todos os montes dos cursos
+
+            Documento []monte = universidade.pegarCopiaDoMonteDoCurso(codigo);
+
+            //verifica se o monte não estava vazio
+
+            if(monte != null){
+
+                //trata os documentos individualmente
+
+                for(Documento doc : monte){
+
+                    for(int i = 0; i < 5 ; i++){
+
+                        Processo processo = mesa.getProcesso(i);
+
+                        if(processo != null){
+
+                            if(quantasPaginasRestam(processo) >= doc.getPaginas()){
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
     }
+
+    //Métodos auxiliares utilizados pra implementação do burocrata
+
+    private int quantasPaginasRestam(Processo process) {
+
+        int pag = 0;
+
+        for (Documento docs : process.pegarCopiaDoProcesso()) {
+
+            pag += docs.getPaginas();
+
+        }
+
+        return 250 - pag;
+
+    }
+
+    
     
     /**
      * Retorna o valor atual de estresse do burocrata.
