@@ -1,7 +1,7 @@
 package estudantes.entidades;
 
-import professor.entidades.CodigoCurso;
 import java.util.Objects;
+import professor.entidades.CodigoCurso;
 
 /**
  * Classe que representa um documento genérico.
@@ -47,5 +47,16 @@ public abstract class Documento
     public int hashCode() 
     {
         return Objects.hash(criador, codigoCurso, paginas);
+    }
+
+    //getter das paginas do documento
+    public int getPaginas(){
+        return paginas;
+    }
+
+    //getter do código do curso do documento
+
+    public CodigoCurso getCodigoCurso(){
+        return codigoCurso;
     }
 }

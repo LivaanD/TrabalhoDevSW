@@ -2,7 +2,6 @@ package estudantes.entidades;
 
 import java.util.Arrays;
 import java.util.Objects;
-
 import professor.entidades.CodigoCurso;
 
 public class Circular extends Deliberacao
@@ -29,5 +28,10 @@ public class Circular extends Deliberacao
     public int hashCode() 
     {
         return Objects.hash(super.hashCode(), Arrays.hashCode(destinatarios));
+    }
+
+    //getter dos destinatários do circular
+    public String[] getDestinatarios(){
+        return destinatarios;
     }
 }

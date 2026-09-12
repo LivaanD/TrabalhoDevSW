@@ -1,7 +1,6 @@
 package estudantes.entidades;
 
 import java.util.Objects;
-
 import professor.entidades.CodigoCurso;
 
 public class Oficio extends Deliberacao
@@ -30,4 +29,8 @@ public class Oficio extends Deliberacao
         return Objects.hash(super.hashCode(), destinatario);
     }
 
+    //getter do destinatário do ofício
+    public String getDestinatario(){
+        return destinatario;
+    }
 }

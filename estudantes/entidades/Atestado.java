@@ -1,7 +1,6 @@
 package estudantes.entidades;
 
 import java.util.Objects;
-
 import professor.entidades.CodigoCurso;
 
 public class Atestado extends Registro 
@@ -30,5 +29,10 @@ public class Atestado extends Registro
     public int hashCode() 
     {
         return Objects.hash(super.hashCode(), descricao, categoria);
+    }
+
+    //getter da descrição da categoria do atestado
+    public String getCategoria(){
+        return categoria;
     }
 }
