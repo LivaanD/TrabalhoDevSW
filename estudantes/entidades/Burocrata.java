@@ -1,9 +1,11 @@
 package estudantes.entidades;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import professor.entidades.*;
+import java.util.Iterator;
 
 /**
  * Classe que traz a lógica do algoritmo de organização e despacho de processos.
@@ -63,7 +65,7 @@ public class Burocrata {
 
         //cria um vetor para guardar todos os documentos dos montes
         //utilizada IA como auxilio para entender a criação de listas em java, porém não foi utilizada no desenvolvimento da lógica
-        List<Documento> gaveta = new ArrayList<>(), gradAcad = new ArrayList<>(), posGradAcad = new ArrayList<>(), gradAdm = new ArrayList<>(), posGradAdm = new ArrayList<>(), atasGrad = new ArrayList<>(), atasPosGrad = new ArrayList<>();
+        List<Documento> gaveta = new ArrayList<>(), gradAcad = new ArrayList<>(), posGradAcad = new ArrayList<>(), gradAdm = new ArrayList<>(), posGradAdm = new ArrayList<>(), atasGrad = new ArrayList<>(), atasPosGrad = new ArrayList<>(), diplomasecertificadosPosGrad = new ArrayList<>(), diplomasecertificadosGrad = new ArrayList<>();
         //fim do código da IA
 
         //percorre todos os cursos
@@ -108,11 +110,19 @@ public class Burocrata {
                         break;
                     }      
                 }
+            
             //verifica se o documento é de pós-graduação
             }else if(doc.getCodigoCurso().equals(CodigoCurso.POS_GRADUACAO_COMPUTACAO) || doc.getCodigoCurso().equals(CodigoCurso.POS_GRADUACAO_ENGENHARIA_ELETRICA) || doc.getCodigoCurso().equals(CodigoCurso.POS_GRADUACAO_MICROELETRONICA)){
                 //se for documento de pos acadêmico separa gaveta em outra partiçãa
                 if(doc instanceof DocumentoAcademico){
-                    posGradAcad.add(doc);
+                    //isso vai separar em uma lista só de certificados e diplomas. se nao for um desses, ira adicionar na lista de academicos.
+                    if(doc instanceof Certificado || doc instanceof Diploma){
+                        diplomasecertificadosPosGrad.add(doc);;
+                    }
+                    else
+                    {
+                        posGradAcad.add(doc);
+                    }
                 //se for documento de pos administrativo separa gaveta em outra partição
                 }else if(doc instanceof DocumentoAdministrativo){
                     posGradAdm.add(doc);
@@ -123,7 +133,14 @@ public class Burocrata {
             }else{
                 //se for documento de graduação acadêmico separa gaveta em outra partição
                 if(doc instanceof DocumentoAcademico){
-                    gradAcad.add(doc);
+                    //isso vai separar em uma lista só de certificados e diplomas. se nao for um desses, ira adicionar na lista de academicos.
+                    if(doc instanceof Certificado || doc instanceof Diploma){
+                        diplomasecertificadosGrad.add(doc);;
+                    }
+                    else
+                    {
+                        gradAcad.add(doc);
+                    }
                 //se for documento de graduação administrativo separa gaveta em outra partição
                 }else if(doc instanceof DocumentoAdministrativo){
                     gradAdm.add(doc);
@@ -131,11 +148,211 @@ public class Burocrata {
                 }else atasGrad.add(doc);
             }
         }
+        
+        //Logica para adicionar documentos no processo
+        //Primeiro, ve se é possivel despachar um processo so com diplomas e certificados
+        if(diplomasecertificadosGrad != null){
+            int numeroDePaginas = calcularTotalPaginas(diplomasecertificadosGrad);        
+        
+            if(numeroDePaginas >= 250){
+                for(int i = 0; i < 5; i++){
+                    Processo process = mesa.getProcesso(i);
+                
+                    if(process != null && process.contarDocumentos() == 0){
+                        for(Documento doc : diplomasecertificadosGrad){
+                            int paginasDoc = doc.getPaginas();
+                        
+                            if(paginasDoc <= quantasPaginasRestam(process)){
+                                process.adicionarDocumento(doc);
+                                universidade.removerDocumentoDoMonteDoCurso(doc, doc.getCodigoCurso());
+                            }
+                        }
+                    }
+                    break; //Sai do laço para nao verificar outro processo
+                }
+            }else if (numeroDePaginas < 250){
+                int paginasDeAtas = calcularTotalPaginas(atasPosGrad);
+            
+                if(numeroDePaginas + paginasDeAtas >= 250){
+                    for(int i = 0; i < 5; i++){
+                        Processo process = mesa.getProcesso(i);
+                
+                        if(process != null && process.contarDocumentos() == 0){
+                            for(Documento doc : diplomasecertificadosPosGrad){
+                                process.adicionarDocumento(doc);
+                                universidade.removerDocumentoDoMonteDoCurso(doc, doc.getCodigoCurso());
+                            }
+                            for(Documento ata : atasPosGrad){
+                                int paginasAta = ata.getPaginas();
 
+                                if(paginasAta <= quantasPaginasRestam(process)){
+                                    process.adicionarDocumento(ata);
+                                    universidade.removerDocumentoDoMonteDoCurso(ata, ata.getCodigoCurso());
+                                }
+                            }
+                        }
+                        break;  //Sai do laço para nao verificar outro processo
+                    }
+                }
+            }
+        }
+        
+        if(diplomasecertificadosPosGrad != null){
+            int numeroDePaginas = calcularTotalPaginas(diplomasecertificadosPosGrad);        
+        
+            if(numeroDePaginas >= 250){
+                for(int i = 0; i < 5; i++){
+                    Processo process = mesa.getProcesso(i);
+                
+                    if(process != null && process.contarDocumentos() == 0){
+                        for(Documento doc : diplomasecertificadosPosGrad){
+                            int paginasDoc = doc.getPaginas();
+                        
+                            if(paginasDoc <= quantasPaginasRestam(process)){
+                                process.adicionarDocumento(doc);
+                                universidade.removerDocumentoDoMonteDoCurso(doc, doc.getCodigoCurso());
+                            }
+                        }
+                    }
+                    break; //Sai do laço para nao verificar outro processo
+                }
+            }else if (numeroDePaginas < 250){
+                int paginasDeAtas = calcularTotalPaginas(atasPosGrad);
+            
+                if(numeroDePaginas + paginasDeAtas >= 250){
+                    for(int i = 0; i < 5; i++){
+                        Processo process = mesa.getProcesso(i);
+                
+                        if(process != null && process.contarDocumentos() == 0){
+                            for(Documento doc : diplomasecertificadosPosGrad){
+                                process.adicionarDocumento(doc);
+                                universidade.removerDocumentoDoMonteDoCurso(doc, doc.getCodigoCurso());
+                            }
+                            for(Documento ata : atasPosGrad){
+                                int paginasAta = ata.getPaginas();
+
+                                if(paginasAta <= quantasPaginasRestam(process)){
+                                    process.adicionarDocumento(ata);
+                                    universidade.removerDocumentoDoMonteDoCurso(ata, ata.getCodigoCurso());
+                                }
+                            }
+                        }
+                        break;  //Sai do laço para nao verificar outro processo
+                    }
+                }
+            }
+        }
+
+        //Segundo, percorre todas as listas
+        /* começo de código gerado por IA */
+        // 1. Criação e ordenação dos grupos por prioridade (maior número de páginas primeiro)
+        List<GrupoDocumentos> grupos = new ArrayList<>();
+        grupos.add(new GrupoDocumentos(gradAcad, calcularTotalPaginas(gradAcad)));
+        grupos.add(new GrupoDocumentos(posGradAcad, calcularTotalPaginas(posGradAcad)));
+        grupos.add(new GrupoDocumentos(gradAdm, calcularTotalPaginas(gradAdm)));
+        grupos.add(new GrupoDocumentos(posGradAdm, calcularTotalPaginas(posGradAdm)));
+        grupos.sort((g1, g2) -> Integer.compare(g2.totalPaginas, g1.totalPaginas));
+        
+        // 2. Preenchimento dos processos vazios na mesa
+        for (int i = 0; i < 5; i++) {
+            Processo processo = mesa.getProcesso(i);
+
+            if (processo != null && processo.contarDocumentos() == 0) {
+
+                // Percorre as listas priorizadas
+                for (GrupoDocumentos grupo : grupos) {
+                    if (!grupo.lista.isEmpty()) {
+                        String categoriaAtestado = null;
+                        List<String> destinatariosComuns = null;
+
+                        Iterator<Documento> it = grupo.lista.iterator();
+
+                        while (it.hasNext()) {
+                            Documento doc = it.next();
+
+                            // Regra: Atestados (Para listas Acadêmicas)
+                            if (doc instanceof Atestado) {
+                                Atestado atestado = (Atestado) doc;
+                                if (categoriaAtestado == null) {
+                                    categoriaAtestado = atestado.getCategoria();
+                                } else if (!categoriaAtestado.equals(atestado.getCategoria())) {
+                                    continue; // Ignora e mantém na lista para o próximo processo
+                                }
+                            }
+
+                            // Regra: Ofícios e Circulares (Para listas Administrativas)
+                            if (doc instanceof Oficio || doc instanceof Circular) {
+                                List<String> destinatariosDesteDoc = new ArrayList<>();
+
+                                if (doc instanceof Oficio) {
+                                    destinatariosDesteDoc.add(((Oficio) doc).getDestinatario());
+                                } else {
+                                    destinatariosDesteDoc.addAll(Arrays.asList(((Circular) doc).getDestinatarios()));
+                                }
+
+                                if (destinatariosComuns == null) {
+                                    destinatariosComuns = new ArrayList<>(destinatariosDesteDoc);
+                                } else {
+                                    List<String> intersecao = new ArrayList<>(destinatariosComuns);
+                                    intersecao.retainAll(destinatariosDesteDoc);
+
+                                    if (intersecao.isEmpty()) {
+                                        continue; // Ignora e mantém na lista para o próximo processo
+                                    }
+                                    destinatariosComuns = intersecao;
+                                }
+                            }
+
+                            // Adiciona se houver espaço
+                            if (doc.getPaginas() <= quantasPaginasRestam(processo)) {
+                                processo.adicionarDocumento(doc);
+                                universidade.removerDocumentoDoMonteDoCurso(doc, doc.getCodigoCurso());
+                                it.remove(); // Remove apenas da lista atual com segurança
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        /* fim do código gerado por IA */
+        //Seleciona a lista com mais documentos
+                //Se for posgradacad
+                    //verificar todos os documentos da lista
+                        //verificar atestados (doc instanceof atestado)
+                            //if flag atestadosAdicionados = false
+                                //buscar todos atestados iguais, e adiciona-los no processo
+                                //liga flag que atestados ja foram adicionados no processo
+                        //se a lista ainda nao encheu, adiciona mais documentos posgradacad
+                        //se a lista ainda nao encheu, insere atas.
+                
+                //Se for posgradadm
+                    //verificar todos os documentos da lista
+                        //verificar circulares, oficios
+                            //if flag circularesEOficiosAdicionados = false
+                                //buscar todos circulares e oficios com nome em comum, e adiciona-los no processo
+                                //liga flag que circulares e oficios ja foram adicionados no processo
+                        //se a lista ainda nao encheu, adiciona mais documentos posgradadm
+                        //se a lista ainda nao encheu, insere atas.
+
+        //Logica para despachar os documentos
+        for(int i = 0; i < 5; i++){
+            Processo process = mesa.getProcesso(i);
+            if(process != null && process.contarDocumentos() != 0){
+                if(regraGraduacaoPosGraduacao(process) && regraAdministrativoAcademico(process) && regraSomenteAtas(process) && regraDocumentoSubstancial(process) && regraDiplomas(process) && regraCategoriaAtestado(process) && regraCircularesOficios(process)){
+                    universidade.despachar(process);
+                }
+                else
+                {
+                    for(Documento doc : process.pegarCopiaDoProcesso()){
+                        universidade.devolverDocumentoParaMonteDoCurso(doc, doc.getCodigoCurso());
+                        process.removerDocumento(doc);
+                    }
+                }
+            }      
+        }   
     }
 
     //Métodos auxiliares utilizados pra implementação do burocrata
-
     private int quantasPaginasRestam(Processo process) {
 
         int pag = 0;
@@ -148,6 +365,15 @@ public class Burocrata {
         return 250 - pag;
     }
 
+    private int calcularTotalPaginas(List<Documento> listaDocumentos) {
+        int paginas = 0;
+        
+        for (Documento doc : listaDocumentos) 
+        {
+            paginas += doc.getPaginas();
+        }
+        return paginas;
+    }
     //Verifica se o processo está dentro da regra de graduação e pós-graduação
     private boolean regraGraduacaoPosGraduacao(Processo process) {
 
@@ -168,7 +394,6 @@ public class Burocrata {
     }
 
     //Verifica se o processo está dentro da regra de documentos administrativos e acadêmicos
-
     private boolean regraAdministrativoAcademico(Processo process) {
 
         boolean administrativos = false, academicos = false;
