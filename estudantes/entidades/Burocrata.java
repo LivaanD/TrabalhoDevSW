@@ -1,11 +1,9 @@
 package estudantes.entidades;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import professor.entidades.*;
-import java.util.Iterator;
 
 /**
  * Classe que traz a lógica do algoritmo de organização e despacho de processos.
@@ -117,7 +115,7 @@ public class Burocrata {
                 if(doc instanceof DocumentoAcademico){
                     //isso vai separar em uma lista só de certificados e diplomas. se nao for um desses, ira adicionar na lista de academicos.
                     if(doc instanceof Certificado || doc instanceof Diploma){
-                        diplomasecertificadosPosGrad.add(doc);;
+                        diplomasecertificadosPosGrad.add(doc);
                     }
                     else
                     {
@@ -148,211 +146,36 @@ public class Burocrata {
                 }else atasGrad.add(doc);
             }
         }
-        
+
         //Logica para adicionar documentos no processo
-        //Primeiro, ve se é possivel despachar um processo so com diplomas e certificados
-        if(diplomasecertificadosGrad != null){
-            int numeroDePaginas = calcularTotalPaginas(diplomasecertificadosGrad);        
-        
-            if(numeroDePaginas >= 250){
-                for(int i = 0; i < 5; i++){
-                    Processo process = mesa.getProcesso(i);
-                
-                    if(process != null && process.contarDocumentos() == 0){
-                        for(Documento doc : diplomasecertificadosGrad){
-                            int paginasDoc = doc.getPaginas();
-                        
-                            if(paginasDoc <= quantasPaginasRestam(process)){
-                                process.adicionarDocumento(doc);
-                                universidade.removerDocumentoDoMonteDoCurso(doc, doc.getCodigoCurso());
-                            }
-                        }
-                    }
-                    break; //Sai do laço para nao verificar outro processo
-                }
-            }else if (numeroDePaginas < 250){
-                int paginasDeAtas = calcularTotalPaginas(atasPosGrad);
-            
-                if(numeroDePaginas + paginasDeAtas >= 250){
-                    for(int i = 0; i < 5; i++){
-                        Processo process = mesa.getProcesso(i);
-                
-                        if(process != null && process.contarDocumentos() == 0){
-                            for(Documento doc : diplomasecertificadosPosGrad){
-                                process.adicionarDocumento(doc);
-                                universidade.removerDocumentoDoMonteDoCurso(doc, doc.getCodigoCurso());
-                            }
-                            for(Documento ata : atasPosGrad){
-                                int paginasAta = ata.getPaginas();
+            //Primeiro, despacha processos so com diplomas e certificados
+                //passa null nas atas porque processos de diploma nao precisam delas
+                empacotarSublista(diplomasecertificadosGrad, null);
+                empacotarSublista(diplomasecertificadosPosGrad, null);
 
-                                if(paginasAta <= quantasPaginasRestam(process)){
-                                    process.adicionarDocumento(ata);
-                                    universidade.removerDocumentoDoMonteDoCurso(ata, ata.getCodigoCurso());
-                                }
-                            }
-                        }
-                        break;  //Sai do laço para nao verificar outro processo
-                    }
-                }
-            }
-        }
-        
-        if(diplomasecertificadosPosGrad != null){
-            int numeroDePaginas = calcularTotalPaginas(diplomasecertificadosPosGrad);        
-        
-            if(numeroDePaginas >= 250){
-                for(int i = 0; i < 5; i++){
-                    Processo process = mesa.getProcesso(i);
-                
-                    if(process != null && process.contarDocumentos() == 0){
-                        for(Documento doc : diplomasecertificadosPosGrad){
-                            int paginasDoc = doc.getPaginas();
-                        
-                            if(paginasDoc <= quantasPaginasRestam(process)){
-                                process.adicionarDocumento(doc);
-                                universidade.removerDocumentoDoMonteDoCurso(doc, doc.getCodigoCurso());
-                            }
-                        }
-                    }
-                    break; //Sai do laço para nao verificar outro processo
-                }
-            }else if (numeroDePaginas < 250){
-                int paginasDeAtas = calcularTotalPaginas(atasPosGrad);
-            
-                if(numeroDePaginas + paginasDeAtas >= 250){
-                    for(int i = 0; i < 5; i++){
-                        Processo process = mesa.getProcesso(i);
-                
-                        if(process != null && process.contarDocumentos() == 0){
-                            for(Documento doc : diplomasecertificadosPosGrad){
-                                process.adicionarDocumento(doc);
-                                universidade.removerDocumentoDoMonteDoCurso(doc, doc.getCodigoCurso());
-                            }
-                            for(Documento ata : atasPosGrad){
-                                int paginasAta = ata.getPaginas();
+            //Segundo, prepara a logica de prioridade
+                //agrupa a lista principal, a lista de atas compativeis e o tamanho
+                List<GrupoDocumentos> grupos = new ArrayList<>();
+                grupos.add(new GrupoDocumentos(gradAcad, atasGrad, calcularTotalPaginas(gradAcad)));
+                grupos.add(new GrupoDocumentos(posGradAcad, atasPosGrad, calcularTotalPaginas(posGradAcad)));
+                grupos.add(new GrupoDocumentos(gradAdm, atasGrad, calcularTotalPaginas(gradAdm)));
+                grupos.add(new GrupoDocumentos(posGradAdm, atasPosGrad, calcularTotalPaginas(posGradAdm)));
 
-                                if(paginasAta <= quantasPaginasRestam(process)){
-                                    process.adicionarDocumento(ata);
-                                    universidade.removerDocumentoDoMonteDoCurso(ata, ata.getCodigoCurso());
-                                }
-                            }
-                        }
-                        break;  //Sai do laço para nao verificar outro processo
-                    }
-                }
-            }
-        }
+            //Terceiro, ordena a lista com os maiores grupos primeiro
+                grupos.sort((g1, g2) -> Integer.compare(g2.totalPaginas, g1.totalPaginas));
 
-        //Segundo, percorre todas as listas
-        /* começo de código gerado por IA */
-        // 1. Criação e ordenação dos grupos por prioridade (maior número de páginas primeiro)
-        List<GrupoDocumentos> grupos = new ArrayList<>();
-        grupos.add(new GrupoDocumentos(gradAcad, calcularTotalPaginas(gradAcad)));
-        grupos.add(new GrupoDocumentos(posGradAcad, calcularTotalPaginas(posGradAcad)));
-        grupos.add(new GrupoDocumentos(gradAdm, calcularTotalPaginas(gradAdm)));
-        grupos.add(new GrupoDocumentos(posGradAdm, calcularTotalPaginas(posGradAdm)));
-        grupos.sort((g1, g2) -> Integer.compare(g2.totalPaginas, g1.totalPaginas));
-        
-        // 2. Preenchimento dos processos vazios na mesa
-        for (int i = 0; i < 5; i++) {
-            Processo processo = mesa.getProcesso(i);
-
-            if (processo != null && processo.contarDocumentos() == 0) {
-
-                // Percorre as listas priorizadas
+            //Quarto, percorre os grupos priorizados
+                //empacota e despacha usando o metodo seguro
                 for (GrupoDocumentos grupo : grupos) {
-                    if (!grupo.lista.isEmpty()) {
-                        String categoriaAtestado = null;
-                        List<String> destinatariosComuns = null;
-
-                        Iterator<Documento> it = grupo.lista.iterator();
-
-                        while (it.hasNext()) {
-                            Documento doc = it.next();
-
-                            // Regra: Atestados (Para listas Acadêmicas)
-                            if (doc instanceof Atestado) {
-                                Atestado atestado = (Atestado) doc;
-                                if (categoriaAtestado == null) {
-                                    categoriaAtestado = atestado.getCategoria();
-                                } else if (!categoriaAtestado.equals(atestado.getCategoria())) {
-                                    continue; // Ignora e mantém na lista para o próximo processo
-                                }
-                            }
-
-                            // Regra: Ofícios e Circulares (Para listas Administrativas)
-                            if (doc instanceof Oficio || doc instanceof Circular) {
-                                List<String> destinatariosDesteDoc = new ArrayList<>();
-
-                                if (doc instanceof Oficio) {
-                                    destinatariosDesteDoc.add(((Oficio) doc).getDestinatario());
-                                } else {
-                                    destinatariosDesteDoc.addAll(Arrays.asList(((Circular) doc).getDestinatarios()));
-                                }
-
-                                if (destinatariosComuns == null) {
-                                    destinatariosComuns = new ArrayList<>(destinatariosDesteDoc);
-                                } else {
-                                    List<String> intersecao = new ArrayList<>(destinatariosComuns);
-                                    intersecao.retainAll(destinatariosDesteDoc);
-
-                                    if (intersecao.isEmpty()) {
-                                        continue; // Ignora e mantém na lista para o próximo processo
-                                    }
-                                    destinatariosComuns = intersecao;
-                                }
-                            }
-
-                            // Adiciona se houver espaço
-                            if (doc.getPaginas() <= quantasPaginasRestam(processo)) {
-                                processo.adicionarDocumento(doc);
-                                universidade.removerDocumentoDoMonteDoCurso(doc, doc.getCodigoCurso());
-                                it.remove(); // Remove apenas da lista atual com segurança
-                            }
-                        }
-                    }
+                    empacotarSublista(grupo.lista, grupo.atas);
                 }
-            }
         }
-        /* fim do código gerado por IA */
-        //Seleciona a lista com mais documentos
-                //Se for posgradacad
-                    //verificar todos os documentos da lista
-                        //verificar atestados (doc instanceof atestado)
-                            //if flag atestadosAdicionados = false
-                                //buscar todos atestados iguais, e adiciona-los no processo
-                                //liga flag que atestados ja foram adicionados no processo
-                        //se a lista ainda nao encheu, adiciona mais documentos posgradacad
-                        //se a lista ainda nao encheu, insere atas.
-                
-                //Se for posgradadm
-                    //verificar todos os documentos da lista
-                        //verificar circulares, oficios
-                            //if flag circularesEOficiosAdicionados = false
-                                //buscar todos circulares e oficios com nome em comum, e adiciona-los no processo
-                                //liga flag que circulares e oficios ja foram adicionados no processo
-                        //se a lista ainda nao encheu, adiciona mais documentos posgradadm
-                        //se a lista ainda nao encheu, insere atas.
-
-        //Logica para despachar os documentos
-        for(int i = 0; i < 5; i++){
-            Processo process = mesa.getProcesso(i);
-            if(process != null && process.contarDocumentos() != 0){
-                if(regraGraduacaoPosGraduacao(process) && regraAdministrativoAcademico(process) && regraSomenteAtas(process) && regraDocumentoSubstancial(process) && regraDiplomas(process) && regraCategoriaAtestado(process) && regraCircularesOficios(process)){
-                    universidade.despachar(process);
-                }
-                else
-                {
-                    for(Documento doc : process.pegarCopiaDoProcesso()){
-                        universidade.devolverDocumentoParaMonteDoCurso(doc, doc.getCodigoCurso());
-                        process.removerDocumento(doc);
-                    }
-                }
-            }      
-        }   
-    }
+        
+        
 
     //Métodos auxiliares utilizados pra implementação do burocrata
+
+    
     private int quantasPaginasRestam(Processo process) {
 
         int pag = 0;
@@ -365,6 +188,8 @@ public class Burocrata {
         return 250 - pag;
     }
 
+
+    //calcula o total de páginas de uma lista de documentos
     private int calcularTotalPaginas(List<Documento> listaDocumentos) {
         int paginas = 0;
         
@@ -535,6 +360,84 @@ private boolean regraCircularesOficios(Processo process) {
     return !existemCircularesEOficiosSemDestinatarioComum;
 }
 /* fim de código gerado por IA */
+
+//Metodos auxiliares para empacotamento
+        //verifica se o documento principal pode entrar no processo sem violar regras
+        private boolean podeInserir(Processo process, Documento doc) {
+            //se nao tem pagina suficiente, recusa
+            if (doc.getPaginas() > quantasPaginasRestam(process)) {
+                return false;
+            }
+
+            process.adicionarDocumento(doc);
+
+            //verifica se a insercao quebrou alguma regra do sistema
+            boolean valido = regraDiplomas(process)
+                          && regraCategoriaAtestado(process)
+                          && regraCircularesOficios(process);
+
+            //se quebrou regra, tira o documento da mesa
+            if (!valido) {
+                process.removerDocumento(doc);
+            }
+
+            return valido;
+        }
+
+        //verifica as regras especificas e mais leves para as atas
+        private boolean podeInserirAta(Processo process, Documento ata) {
+            if (ata.getPaginas() > quantasPaginasRestam(process)) {
+                return false;
+            }
+            //evita processo so de atas
+            return process.contarDocumentos() > 0;
+        }
+
+        //percorre as listas priorizadas empacotando os documentos de forma segura
+        private void empacotarSublista(List<Documento> docs, List<Documento> atas) {
+            //se a lista estiver vazia nao faz nada
+            if (docs == null || docs.isEmpty()) return;
+
+            //verifica todos os processos da mesa
+            for (int i = 0; i < 5; i++) {
+                Processo processo = mesa.getProcesso(i);
+                
+                //se a posicao for nula ou ja tiver documento de outra categoria, pula
+                if (processo == null || processo.contarDocumentos() > 0) continue;
+
+                //tenta encher o processo com os documentos principais
+                for (int j = 0; j < docs.size(); j++) {
+                    Documento doc = docs.get(j);
+                    //chama o validador
+                    if (podeInserir(processo, doc)) {
+                        universidade.removerDocumentoDoMonteDoCurso(doc, doc.getCodigoCurso());
+                        docs.remove(j);
+                        j--;
+                    }
+                }
+
+                //se o processo recebeu algum documento, tenta completar o espaco com atas
+                if (processo.contarDocumentos() > 0) {
+                    if (atas != null) {
+                        for (int j = 0; j < atas.size(); j++) {
+                            Documento ata = atas.get(j);
+                            //chama o validador de ata
+                            if (podeInserirAta(processo, ata)) {
+                                processo.adicionarDocumento(ata);
+                                universidade.removerDocumentoDoMonteDoCurso(ata, ata.getCodigoCurso());
+                                atas.remove(j);
+                                j--;
+                            }
+                        }
+                    }
+                    //despacha o processo que acabou de ser preenchido
+                    universidade.despachar(processo);
+                }
+                
+                //se os documentos dessa categoria acabaram, sai do laco da mesa
+                if (docs.isEmpty()) break;
+            }
+        }
     
     
     
